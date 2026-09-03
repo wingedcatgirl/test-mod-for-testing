@@ -1,0 +1,27 @@
+{
+    "workspace.library": [
+        "/home/sylvi/Documents/projects/smods-bettercalc/lsp_def",
+        "/home/sylvi/Documents/balatro source",
+        "/home/sylvi/Documents/love2d lsp definitions",
+        "/home/sylvi/Documents/balatro mods/Fusion-Jokers/mod/lsp_defs.lua",
+        "/home/sylvi/Documents/balatro mods/CardSleeves/lsp_defs.lua",
+        "/home/sylvi/Documents/balatro mods/CardPronouns/lsp_defs.lua"
+    ],
+
+    "diagnostics.disable": [
+        "undefined-global",
+        "lowercase-global",
+        "need-check-nil",
+        "duplicate-set-field",
+        "inject-field",
+        "undefined-field",
+        "unused-local"
+    ],
+    "diagnostics.severity": {
+        "unused-local": "Hint"
+    },
+"runtime.version": "LuaJIT",
+"type.weakUnionCheck": true,
+"type.weakNilCheck": true,
+"diagnostics.unusedLocalExclude": []
+}

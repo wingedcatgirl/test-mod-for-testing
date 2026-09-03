@@ -1,0 +1,16 @@
+{
+	"id": "testmod",
+	"name": "test mod",
+	"display_name": "test mod",
+	"author": ["test"],
+	"description": "a box for testing misc crap",
+	"prefix": "test",
+	"main_file": "main.lua",
+	"priority": 37,
+	"badge_colour": "CA7CA7",
+	"badge_text_colour": "FFFFFF",
+	"version": "0.0.1i",
+	"dependencies": [
+			"Steamodded(>=1.0.0~BETA-0827)"
+	]
+}
