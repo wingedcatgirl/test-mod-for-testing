@@ -1,5 +1,14 @@
 -- Adapted from ivy real_niacat's code
-TESTMOD4TESTING.say("Loading crash messages...", "TRACE")
+
+--#region So people can copy this file mostly unaltered. 
+--If you want to get rid of this, you should have like, 102 level understanding of global tables in Lua at minimum.
+local this_mod = TESTMOD4TESTING
+local say = this_mod.say or function (msg)
+    print(msg)
+end
+--#endregion
+
+say("Loading crash messages...", "TRACE")
 
 local http = require("SMODS.https")
 local json = require("json")
@@ -46,10 +55,10 @@ local function send_that_webhook(msg, target)
     end
 end
 
-function TESTMOD4TESTING.webhook_test(mod)
+function this_mod.webhook_test(mod)
     mod = mod or "testmod"
     local msg = "Testing that webhook!"
-    local webhook_list = TESTMOD4TESTING.read_hook_file(mod)
+    local webhook_list = this_mod.read_hook_file(mod)
     if webhook_list then
         local crashcount_filename = mod .. "_crashes.txt"
         local crash_count = tonumber(love.filesystem.read(crashcount_filename) or 0)
@@ -64,13 +73,13 @@ end
 --Don't edit this text here. To be clear.
 local unedited_text = "After creating the webhook file, replace this text inside it with a return-separated list of webhook URLs.\nThey may (optionally) be followed by a pipe symbol | and a custom message.\nUse #modname# for the mod's name, and #crashcount# for the number of times crashed so far."
 
-function TESTMOD4TESTING.creat_hook_file(modname)
+function this_mod.creat_hook_file(modname)
     NFS.write(modname.."_webhooks.txt", unedited_text)
 end
 
 local default_msg = "Looks like #modname# crashed again! This makes #crashcount# times since we started tracking!"
 
-function TESTMOD4TESTING.read_hook_file(modname)
+function this_mod.read_hook_file(modname)
     local data = NFS.read(modname.."_webhooks.txt")
     local all_webhooks = {}
     if data and data ~= unedited_text then
@@ -98,7 +107,7 @@ function TESTMOD4TESTING.read_hook_file(modname)
         end
     else
         local errmsg = "Nope!" .. (data == unedited_text and " You gotta put the URLS in the file first!" or "")
-        TESTMOD4TESTING.say(errmsg, "WARN ")
+        say(errmsg, "WARN ")
         return
     end
     return all_webhooks
@@ -106,7 +115,7 @@ end
 
 local default_author = SMODS.current_mod.author[1]
 
-function TESTMOD4TESTING.creat_all_hook_files(author)
+function this_mod.creat_all_hook_files(author)
     author = author or default_author
 
     for k,v in pairs(SMODS.Mods) do
@@ -123,7 +132,7 @@ function TESTMOD4TESTING.creat_all_hook_files(author)
             if not excluded then
                 print"WARNING! Unable to find or create an entry in .git/info/exclude for these files!\nPlease ensure, by whichever means you have available, that you don't make them public by mistake."
             end
-            TESTMOD4TESTING.creat_hook_file(k)
+            this_mod.creat_hook_file(k)
         end
     end
 end
@@ -140,7 +149,7 @@ love.errorhandler = function (...)
         end
 
         if v.can_load and is_for_me and love.filesystem.exists(k.."_webhooks.txt") then
-            local webhook_list = TESTMOD4TESTING.read_hook_file(k)
+            local webhook_list = this_mod.read_hook_file(k)
             if webhook_list then
                 local crashcount_filename = k.."_crashes.txt"
                 local crash_count = tonumber(love.filesystem.read(crashcount_filename) or 0)
