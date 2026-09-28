@@ -2,7 +2,7 @@
 
 --#region So people can copy this file mostly unaltered. 
 --If you want to get rid of this, you should have like, 102 level understanding of global tables in Lua at minimum.
-local this_mod = TESTMOD4TESTING
+local this_mod = TESTMOD4TESTING --Change this to your mod's global table.
 local say = this_mod.say or function (msg)
     print(msg)
 end
