@@ -2,7 +2,7 @@
 	"id": "testmod",
 	"name": "test mod",
 	"display_name": "test mod",
-	"author": ["test"],
+	"author": ["wingedcatgirl"],
 	"description": "a box for testing misc crap",
 	"prefix": "test",
 	"main_file": "main.lua",

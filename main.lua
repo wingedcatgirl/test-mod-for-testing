@@ -1,10 +1,22 @@
---SMODS.load_file("Challengecode.lua")()
-
-local say = function (message)
-    sendDebugMessage(message, "Test Mod (For Testing)")
-end
-
 TESTMOD4TESTING = TESTMOD4TESTING or {}
+
+---Debug messages
+---@param message string Message to send
+---@param level? string 
+---|"'FATAL'" # Something has gone horribly wrong and crashes are likely
+---|"'ERROR'" # Something has gone horribly wrong, but crashes aren't likely (yet)
+---|"'WARN '" # Something has gone wrong, but the program can handle it (e.g. call to a deprecated function)
+---|"'INFO '" # Information even a casual player might want if they added DebugPlus
+---|"'DEBUG'" # Debugging info most people don't need (default value)
+---|"'TRACE'" # Potential debugging info even we don't (yet) need
+TESTMOD4TESTING.say = function (message, level)
+    level = level or "DEBUG"
+    while #level < 5 do
+        level = level .. " "
+    end
+    sendMessageToConsole(level, "Test Mod (For Testing)", message)
+end
+local say = TESTMOD4TESTING.say
 
 --[[
 SMODS.current_mod.calculate = function (self, context)
@@ -12,11 +24,17 @@ SMODS.current_mod.calculate = function (self, context)
 end
 --]]
 
+SMODS.current_mod.optional_features = {
+    object_weights = true
+}
+
 TESTMOD4TESTING.event = function(func, args)
     args = args or {}
     args.func = args.func or func
     G.E_MANAGER:add_event(Event(args))
 end
+
+assert(SMODS.load_file("crash_webhooks.lua"))()
 
 SMODS.Back{
     key = "Test",
@@ -24,9 +42,7 @@ SMODS.Back{
         name = "Test deck",
         text = {
             "For testing",
-            "{C:inactive}(Immortal, 100 hands+discards)",
-            "{C:inactive}(16 cards that stay in hand)",
-            "{C:inactive}(plus whatever else you typed)"
+            "{C:inactive}(Immortal, plus whatever)",
         }
     },
     calculate = function (self, back, context)
@@ -54,83 +70,31 @@ SMODS.Back{
         G.GAME.starting_params.discards = G.GAME.starting_params.discards + 100
         G.GAME.starting_params.hands = G.GAME.starting_params.hands + 100
         TESTMOD4TESTING.event(function ()
-            if not next(SMODS.find_mod("FishAndChips")) then return true end
-            if not G.fac_fish_area then return false end
-            local jokers_to_add = {
-                "fish_fac_proto_noir",
-                --"fish_fac_proto_lockpick",
-                "j_splash",
-                "j_chicot",
-            }
-
-            for i,v in ipairs(jokers_to_add) do
-                if G.P_CENTERS[v] then
-                    local card = SMODS.add_card{key = v}
-                    card.ability.extra_slots_used = -1
-                end
+            for i=1,5 do
+                SMODS.add_card{
+                    set = "Food"
+                }
             end
-
-            TESTMOD4TESTING.event(function ()
-                local cards_to_shred = {}
-                for i,v in ipairs(G.playing_cards) do
-                    cards_to_shred[#cards_to_shred+1] = v
-                    if #cards_to_shred > 36 then
-                        table.remove(cards_to_shred, math.random(#cards_to_shred))
-                    end
-                end
-                SMODS.destroy_cards(cards_to_shred, {
-                    skip_calc = true,
-                    pinch_anim = true
-                })
-                return true
-            end)
             return true
         end, {blockable = false, blocking = false})
     end
 }
 
-if next(SMODS.find_mod("FishAndChips")) then
-    SMODS.Back{
-        key = "fishtest",
-        loc_txt = {
-            name = "Fish test",
-            text = {
-                "Creates two random fish",
-                "on game start, and when",
-                "entering each blind"
-            }
-        },
-        apply = function (self, back)
-            TESTMOD4TESTING.event(function ()
-                if not G.fac_fish_area then return false end
-                for i=1,2 do
-                    SMODS.add_card{
-                        set = "fac_Fish"
-                    }
-                end
-                return true
-            end, {blocking = false, blockable = false})
-        end,
-        calculate = function (self, back, context)
-            if context.setting_blind then
-                print (G.GAME.round)
-                for i=1,2 do
-                    SMODS.add_card{
-                        set = "fac_Fish"
-                    }
-                end
+SMODS.Back{
+    key = "crashonpurpose",
+    loc_txt = {
+        name = "Crashing Deck",
+        text = {
+            "Deck that crashes the",
+            "game when you start it"
+        }
+    },
+    apply = function (self, back)
+        error("Yeah, lemme just check if I'm playing the deck that crashes the game when you start it - aw, fuck.")
+    end
+}
 
-                if G.fac_fish_debug and G.P_CENTERS[G.fac_fish_debug] then
-                    SMODS.add_card{
-                        key = G.fac_fish_debug
-                    }
-                    G.fac_fish_debug = nil
-                end
-            end
-        end
-    }
-end
-
+--[[
 SMODS.Joker{
     key = "testleg",
     loc_txt = {
@@ -139,14 +103,7 @@ SMODS.Joker{
             "It's legendary! :D"
         }
     },
-    rarity = 4,
-    loc_vars = function (self, info_queue, card)
-        if next(SMODS.find_mod("FishAndChips")) then
-            info_queue[#info_queue+1] = {key = "fish_fac_minty_kyriaki", set = "fac_Fish", config = {}}
-            info_queue[#info_queue+1] = {key = "j_joker", set = "Joker", vars = {4}, config = {}}
-        end
-        
-    end
+    rarity = 4
 }
 
 SMODS.Stake{
@@ -172,6 +129,7 @@ SMODS.Stake{
         }
     }
 }
+--]]
 
 SMODS.Tag{
     key = "monitoring",
@@ -187,7 +145,7 @@ SMODS.Tag{
         return false
     end,
     loc_vars = function (self, info_queue, tag)
-        
+
     end,
     apply = function (self, tag, context)
         if context then say(context.type); return end
@@ -213,6 +171,9 @@ SMODS.Joker{
                 card.ability.extra.mult
             }
         }
+    end,
+    in_pool = function (self, args)
+        return false
     end
 }
 
@@ -228,7 +189,7 @@ if next(SMODS.find_mod("FusionJokers")) then
     }
 end
 
-function TESTMOD4TESTING.export_fucking_everything(mod_id, filter) --function(card) return card.children.center.atlas.px ~= 71 or card.children.center.atlas.py ~= 95 or not not next(card.config.center.display_size or {}) end
+function TESTMOD4TESTING.export_fucking_everything(mod_id, filter, overwrite) --function(card) return card.children.center.atlas.px ~= 71 or card.children.center.atlas.py ~= 95 or not not next(card.config.center.display_size or {}) end
     if not SMODS.card_to_image then
         sendErrorMessage("Too early, exporting isn't invented yet!", "Test Mod (For Testing)")
         return
@@ -252,29 +213,21 @@ function TESTMOD4TESTING.export_fucking_everything(mod_id, filter) --function(ca
                     local name = localize { type = "name_text", key = k, set = v.set }
                     local clean_name = name:gsub(forbidden, "X")
                     local modname = v.original_mod.name
-                    local clean_modname = modname:gsub(forbidden, "X")
-                    local mod_filename = clean_modname
-                    local alt_modname = clean_modname .. " (altered names)"
+                    local mod_folder_name = modname:gsub(forbidden, "X")
+                    local mod_filename = mod_folder_name
+                    local alt_modname = mod_folder_name .. " (altered names)"
                     if name == "ERROR" then
                         sendWarnMessage("Unable to localize " .. k)
                         clean_name = k
-                        clean_modname = alt_modname
+                        mod_folder_name = alt_modname
                     end
-                    if name ~= clean_name or modname ~= clean_modname then
+                    if name ~= clean_name or modname ~= mod_folder_name then
                         print("Sanitized " .. name .. " from " .. modname ..
                         " as '" .. clean_name .. " (" .. mod_filename .. ")")
-                        clean_modname = alt_modname
+                        mod_folder_name = alt_modname
                     end
 
-                    if not NFS.getInfo("exported card images/" .. clean_modname, "directory") then
-                        NFS.createDirectory("exported card images/" .. clean_modname)
-                    end
-
-                    if not NFS.getInfo("exported card images/" .. clean_modname .. "/" .. (v.set), "directory") then
-                        NFS.createDirectory("exported card images/" .. clean_modname .. "/" .. (v.set))
-                    end
-
-                    if not NFS.getInfo("exported card images/" .. clean_modname .. "/" .. (v.set) .. "/" .. clean_name .. " (" .. mod_filename .. ").png") then
+                    if overwrite or not NFS.getInfo("exported card images/" .. mod_folder_name .. "/" .. (v.set) .. "/" .. clean_name .. " (" .. mod_filename .. ").png") then
                         local card
                         if v.set == "Edition" then
                             card = SMODS.add_card {
@@ -310,18 +263,25 @@ function TESTMOD4TESTING.export_fucking_everything(mod_id, filter) --function(ca
                                     end
                                 end
 
-                                if NFS.getInfo("exported card images/" .. clean_modname .. "/" .. (v.set) .. "/" .. clean_name .. " (" .. mod_filename .. ").png") then skip = true end
+                                if NFS.getInfo("exported card images/" .. mod_folder_name .. "/" .. (v.set) .. "/" .. clean_name .. " (" .. mod_filename .. ").png") and not overwrite then skip = true end
                             else
-                                sendWarnMessage("Unable to get vars for " .. clean_name .. " from " .. clean_modname,
+                                sendWarnMessage("Unable to get vars for " .. clean_name .. " from " .. mod_folder_name,
                                     "Test Mod (For Testing)")
-                                clean_modname = alt_modname
+                                mod_folder_name = alt_modname
                             end
                         end
 
                         if not skip then
+                            if not NFS.getInfo("exported card images/" .. mod_folder_name, "directory") then
+                                NFS.createDirectory("exported card images/" .. mod_folder_name)
+                            end
+
+                            if not NFS.getInfo("exported card images/" .. mod_folder_name .. "/" .. (v.set), "directory") then
+                                NFS.createDirectory("exported card images/" .. mod_folder_name .. "/" .. (v.set))
+                            end
                             local succ, res = pcall(SMODS.card_to_image, card, 1,
                                 "exported card images/" ..
-                                clean_modname .. "/" .. (v.set) .. "/" .. clean_name .. " (" .. mod_filename .. ")")
+                                mod_folder_name .. "/" .. (v.set) .. "/" .. clean_name .. " (" .. mod_filename .. ")")
                             if not succ then sendWarnMessage(res or "Unknown error", "Test Mod (For Testing)") end
                         end
 
