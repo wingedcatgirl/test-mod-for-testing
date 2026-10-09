@@ -55,9 +55,9 @@ local function send_that_webhook(msg, target)
     end
 end
 
-function this_mod.webhook_test(mod)
+function this_mod.webhook_test(mod, msg)
     mod = mod or "testmod"
-    local msg = "Testing that webhook!"
+    msg = msg or "Testing that webhook!"
     local webhook_list = this_mod.read_hook_file(mod)
     if webhook_list then
         local crashcount_filename = mod .. "_crashes.txt"
@@ -138,7 +138,10 @@ function this_mod.creat_all_hook_files(author)
 end
 
 local loveerrorhandler = love.errorhandler
-love.errorhandler = function (...)
+love.errorhandler = function (msg)
+    --print("Value passed to love error handler is: ", msg)
+
+    --Todo, get mod id out of msg and do something with it? They come in the form "[SMODS testmod "main.lua"]:93: Yeah, lemme just check if I'm playing the deck that crashes the game when you start it - aw, fuck."
     for k,v in pairs(SMODS.Mods) do
         local is_for_me = false
         for _,modder in ipairs(v.author or {}) do
@@ -156,14 +159,14 @@ love.errorhandler = function (...)
                 crash_count = crash_count + 1
                 love.filesystem.write(crashcount_filename, tostring(crash_count))
 
-                for url,msg in pairs(webhook_list) do
-                    msg = msg:gsub("#modname#", v.name):gsub("#crashcount#", crash_count)
+                for url,webmsg in pairs(webhook_list) do
+                    webmsg = webmsg:gsub("#modname#", v.name):gsub("#crashcount#", crash_count):gsub("#errmsg#", msg)
 
-                    send_that_webhook(msg, url)
+                    send_that_webhook(webmsg, url)
                 end
             end
         end
     end
 
-    return loveerrorhandler(...)
+    return loveerrorhandler(msg)
 end
