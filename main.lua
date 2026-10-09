@@ -153,6 +153,56 @@ SMODS.Tag{
 }
 
 SMODS.Joker{
+    key = "balancetest",
+    config = {
+        extra = {
+            amt = 50,
+            raw_amt = 1.5,
+            kind = "normal",
+            kind_rotation = {
+                normal = "capped",
+                capped = "penalized",
+                penalized = "normal"
+            }
+        }
+    },
+    loc_txt = {
+        name = "Balancer",
+        text = {
+            "Balances #1#% in",
+            "a #2# fashion"
+        }
+    },
+    loc_vars = function (self, info_queue, card)
+        return {
+            vars = {
+                card.ability.extra.amt,
+                card.ability.extra.kind
+            }
+        }
+    end,
+    calculate = function (self, card, context)
+        if context.final_scoring_step then
+            local kind = card.ability.extra.kind
+            local ret = {balance = card.ability.extra.amt}
+            if kind == "capped" then
+                ret.balance_cap = true
+            elseif kind == "penalized" then
+                ret.overbalance_penalty = true
+            end
+            return ret
+        end
+
+        if context.after then
+            card.ability.extra.kind = card.ability.extra.kind_rotation[card.ability.extra.kind]
+            return {
+                message = "Rotated!"
+            }
+        end
+    end
+}
+
+SMODS.Joker{
     key = "smissmas",
     config = {
         extra = {
@@ -240,12 +290,14 @@ function TESTMOD4TESTING.export_fucking_everything(mod_id, filter, overwrite) --
                                 rank = "Ace",
                                 suit = "Spades",
                                 enhancement = k,
-                                area = G.play
+                                area = G.play,
+                                no_edition = true
                             }
                         else
                             card = SMODS.add_card {
                                 key = k,
-                                area = G.play
+                                area = G.play,
+                                no_edition = true
                             }
                         end
                         local skip
