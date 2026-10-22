@@ -34,8 +34,6 @@ TESTMOD4TESTING.event = function(func, args)
     G.E_MANAGER:add_event(Event(args))
 end
 
-assert(SMODS.load_file("crash_webhooks.lua"))()
-
 SMODS.Back{
     key = "Test",
     loc_txt = {
@@ -80,19 +78,22 @@ SMODS.Back{
     end
 }
 
-SMODS.Back{
-    key = "crashonpurpose",
-    loc_txt = {
-        name = "Crashing Deck",
-        text = {
-            "Deck that crashes the",
-            "game when you start it"
-        }
-    },
-    apply = function (self, back)
-        error("Yeah, lemme just check if I'm playing the deck that crashes the game when you start it - aw, fuck.")
-    end
-}
+if not next(SMODS.find_mod("CrashHooks")) then
+    SMODS.Back{
+        key = "crashonpurpose",
+        loc_txt = {
+            name = "Crashing Deck",
+            text = {
+                "Deck that crashes the",
+                "game when you start it"
+            }
+        },
+        apply = function (self, back)
+            error("Yeah, lemme just check if I'm playing the deck that crashes the game when you start it - aw, fuck.")
+        end
+    }
+end
+
 
 --[[
 SMODS.Joker{
